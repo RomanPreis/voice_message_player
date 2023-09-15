@@ -145,6 +145,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
                     padding: const EdgeInsets.all(8),
                     child: CircularProgressIndicator(
                       color: widget.backgroundColor,
+                      strokeCap: StrokeCap.round,
                     ),
                   )
                 : Icon(
