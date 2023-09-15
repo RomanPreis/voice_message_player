@@ -2,9 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import 'colors.dart';
-
-///
 class S {
   ///
   static innerBoxShadow() => [
@@ -30,8 +27,7 @@ class S {
       ];
 
   ///
-  static radius38(BuildContext context) =>
-      min(38, MediaQuery.of(context).size.width * .08);
+  static radius38(BuildContext context) => min(38, MediaQuery.of(context).size.width * .08);
 
   ///
   static boxShadow(
@@ -47,14 +43,6 @@ class S {
       );
 
   ///
-  static pinkShadow({Color? shadow}) => [
-        BoxShadow(
-          color: shadow ?? AppColors.pink300,
-          blurRadius: 56,
-          spreadRadius: .4,
-          offset: const Offset(0, 13),
-        )
-      ];
 
   ///
   static double w(Size? s) => s!.width;

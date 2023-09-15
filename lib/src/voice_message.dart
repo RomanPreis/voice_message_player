@@ -2,22 +2,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-// ignore: library_prefixes
-import 'package:just_audio/just_audio.dart' as jsAudio;
-import 'package:voice_message_package/src/contact_noises.dart';
 import 'package:voice_message_package/src/helpers/utils.dart';
 
-import './helpers/widgets.dart';
 import './noises.dart';
-import 'helpers/colors.dart';
 
-/// This is the main widget.
 // ignore: must_be_immutable
 class VoiceMessage extends StatefulWidget {
   VoiceMessage({
     Key? key,
-    required this.me,
     this.audioSrc,
     this.audioFile,
     this.duration,
@@ -25,15 +19,9 @@ class VoiceMessage extends StatefulWidget {
     this.showDuration = false,
     this.waveForm,
     this.noiseCount = 27,
-    this.meBgColor = AppColors.pink,
-    this.contactBgColor = const Color(0xffffffff),
-    this.contactFgColor = AppColors.pink,
-    this.contactCircleColor = Colors.red,
-    this.mePlayIconColor = Colors.black,
-    this.contactPlayIconColor = Colors.black26,
-    this.radius = 12,
-    this.contactPlayIconBgColor = Colors.grey,
-    this.meFgColor = const Color(0xffffffff),
+    this.backgroundColor = const Color(0xFF526BF7),
+    this.radius = 24,
+    this.foregroundColor = const Color(0xffffffff),
     this.played = false,
     this.onPlay,
   }) : super(key: key);
@@ -46,25 +34,16 @@ class VoiceMessage extends StatefulWidget {
   final double radius;
 
   final int noiseCount;
-  final Color meBgColor,
-      meFgColor,
-      contactBgColor,
-      contactFgColor,
-      contactCircleColor,
-      mePlayIconColor,
-      contactPlayIconColor,
-      contactPlayIconBgColor;
-  final bool played, me;
+  final Color backgroundColor, foregroundColor;
+  final bool played;
   Function()? onPlay;
   String Function(Duration duration)? formatDuration;
 
   @override
-  // ignore: library_private_types_in_public_api
-  _VoiceMessageState createState() => _VoiceMessageState();
+  State<VoiceMessage> createState() => _VoiceMessageState();
 }
 
-class _VoiceMessageState extends State<VoiceMessage>
-    with SingleTickerProviderStateMixin {
+class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderStateMixin {
   late StreamSubscription stream;
   final AudioPlayer _player = AudioPlayer();
   final double maxNoiseHeight = 6.w(), noiseWidth = 28.5.w();
@@ -114,35 +93,39 @@ class _VoiceMessageState extends State<VoiceMessage>
   @override
   Widget build(BuildContext context) => _sizerChild(context);
 
-  Container _sizerChild(BuildContext context) => Container(
-        padding: EdgeInsets.symmetric(horizontal: .8.w()),
-        constraints: BoxConstraints(maxWidth: 100.w() * .8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(widget.radius),
-            bottomLeft: widget.me
-                ? Radius.circular(widget.radius)
-                : const Radius.circular(4),
-            bottomRight: !widget.me
-                ? Radius.circular(widget.radius)
-                : const Radius.circular(4),
-            topRight: Radius.circular(widget.radius),
-          ),
-          color: widget.me ? widget.meBgColor : widget.contactBgColor,
+  Widget _sizerChild(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(
+          48,
+          6,
+          16,
+          6,
         ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4.w(), vertical: 2.8.w()),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _playButton(context),
-              SizedBox(width: 3.w()),
-              _durationWithNoise(context),
-              SizedBox(width: 2.2.w()),
-
-              /// x2 button will be added here.
-              // _speed(context),
-            ],
+        child: Material(
+          type: MaterialType.transparency,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(widget.radius),
+                bottomLeft: Radius.circular(widget.radius),
+                topRight: Radius.circular(widget.radius),
+              ),
+              color: widget.backgroundColor,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 8, 12),
+                  child: _playButton(context),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: _durationWithNoise(context),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -151,29 +134,22 @@ class _VoiceMessageState extends State<VoiceMessage>
         child: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: widget.me ? widget.meFgColor : widget.contactPlayIconBgColor,
+            color: widget.foregroundColor,
           ),
-          width: 10.w(),
-          height: 10.w(),
+          width: 36,
+          height: 36,
           child: InkWell(
-            onTap: () =>
-                !_audioConfigurationDone ? null : _changePlayingStatus(),
+            onTap: () => !_audioConfigurationDone ? null : _changePlayingStatus(),
             child: !_audioConfigurationDone
                 ? Container(
                     padding: const EdgeInsets.all(8),
-                    width: 10,
-                    height: 0,
                     child: CircularProgressIndicator(
-                      strokeWidth: 1,
-                      color:
-                          widget.me ? widget.meFgColor : widget.contactFgColor,
+                      color: widget.backgroundColor,
                     ),
                   )
                 : Icon(
-                    _isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: widget.me
-                        ? widget.mePlayIconColor
-                        : widget.contactPlayIconColor,
+                    _isPlaying ? CupertinoIcons.pause_solid : CupertinoIcons.play_arrow_solid,
+                    color: widget.backgroundColor,
                     size: 5.w(),
                   ),
           ),
@@ -184,15 +160,8 @@ class _VoiceMessageState extends State<VoiceMessage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _noise(context),
-          SizedBox(height: .3.w()),
           Row(
             children: [
-              /// show played badge
-              if (!widget.played)
-                Widgets.circle(context, 1.5.w(),
-                    widget.me ? widget.meFgColor : widget.contactCircleColor),
-
-              /// show duration
               if (widget.showDuration)
                 Padding(
                   padding: EdgeInsets.only(left: 1.2.w()),
@@ -200,8 +169,7 @@ class _VoiceMessageState extends State<VoiceMessage>
                     widget.formatDuration!(widget.duration!),
                     style: TextStyle(
                       fontSize: 10,
-                      color:
-                          widget.me ? widget.meFgColor : widget.contactFgColor,
+                      color: widget.foregroundColor,
                     ),
                   ),
                 ),
@@ -212,7 +180,7 @@ class _VoiceMessageState extends State<VoiceMessage>
                   _remainingTime,
                   style: TextStyle(
                     fontSize: 10,
-                    color: widget.me ? widget.meFgColor : widget.contactFgColor,
+                    color: widget.foregroundColor,
                   ),
                 ),
               ),
@@ -221,80 +189,43 @@ class _VoiceMessageState extends State<VoiceMessage>
         ],
       );
 
-  /// Noise widget of audio.
   Widget _noise(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final newTHeme = theme.copyWith(
-      sliderTheme: SliderThemeData(
-        trackShape: CustomTrackShape(),
-        thumbShape: SliderComponentShape.noThumb,
-        minThumbSeparation: 0,
-      ),
-    );
-
-    ///
-    return Theme(
-      data: newTHeme,
-      child: SizedBox(
-        height: 6.5.w(),
-        width: noiseWidth,
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            widget.me ? const Noises() : const ContactNoise(),
-            if (_audioConfigurationDone)
-              AnimatedBuilder(
-                animation:
-                    CurvedAnimation(parent: _controller!, curve: Curves.ease),
-                builder: (context, child) {
-                  return Positioned(
-                    left: _controller!.value,
-                    child: Container(
-                      width: noiseWidth,
-                      height: 6.w(),
-                      color: widget.me
-                          ? widget.meBgColor.withOpacity(.4)
-                          : widget.contactBgColor.withOpacity(.35),
-                    ),
-                  );
-                },
-              ),
-            Opacity(
-              opacity: .0,
-              child: Container(
-                width: noiseWidth,
-                color: Colors.amber.withOpacity(0),
-                child: Slider(
-                  min: 0.0,
-                  max: maxDurationForSlider,
-                  onChangeStart: (__) => _stopPlaying(),
-                  onChanged: (_) => _onChangeSlider(_),
-                  value: duration + .0,
+    return Stack(
+      clipBehavior: Clip.hardEdge,
+      alignment: Alignment.center,
+      children: [
+        const Noises(),
+        if (_audioConfigurationDone)
+          AnimatedBuilder(
+            animation: CurvedAnimation(parent: _controller!, curve: Curves.ease),
+            builder: (context, child) {
+              return Positioned(
+                left: _controller!.value,
+                child: Container(
+                  width: noiseWidth,
+                  height: 6.w(),
+                  color: widget.backgroundColor.withOpacity(.4),
                 ),
-              ),
+              );
+            },
+          ),
+        Opacity(
+          opacity: .0,
+          child: Container(
+            width: noiseWidth,
+            color: Colors.amber.withOpacity(0),
+            child: Slider(
+              min: 0.0,
+              max: maxDurationForSlider,
+              onChangeStart: (__) => _stopPlaying(),
+              onChanged: (_) => _onChangeSlider(_),
+              value: duration + .0,
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
-
-  // _speed(BuildContext context) => InkWell(
-  //       onTap: () => _toggle2x(),
-  //       child: Container(
-  //         alignment: Alignment.center,
-  //         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.6.w),
-  //         decoration: BoxDecoration(
-  //           borderRadius: BorderRadius.circular(2.8.w),
-  //           color: widget.meFgColor.withOpacity(.28),
-  //         ),
-  //         width: 9.8.w,
-  //         child: Text(
-  //           !x2 ? '1X' : '2X',
-  //           style: TextStyle(fontSize: 9.8, color: widget.meFgColor),
-  //         ),
-  //       ),
-  //     );
 
   void _startPlaying() async {
     if (widget.audioFile != null) {
@@ -316,7 +247,7 @@ class _VoiceMessageState extends State<VoiceMessage>
     if (widget.duration != null) {
       _audioDuration = widget.duration;
     } else {
-      _audioDuration = await jsAudio.AudioPlayer().setUrl(widget.audioSrc!);
+      _audioDuration = await _player.getDuration();
     }
     duration = _audioDuration!.inMilliseconds;
     maxDurationForSlider = duration + .0;
@@ -349,16 +280,7 @@ class _VoiceMessageState extends State<VoiceMessage>
     _completeAnimationConfiguration();
   }
 
-  void _completeAnimationConfiguration() =>
-      setState(() => _audioConfigurationDone = true);
-
-  // void _toggle2x() {
-  //   x2 = !x2;
-  //   _controller!.duration = Duration(seconds: x2 ? duration ~/ 2 : duration);
-  //   if (_controller!.isAnimating) _controller!.forward();
-  //   _player.setPlaybackRate(x2 ? 2 : 1);
-  //   setState(() {});
-  // }
+  void _completeAnimationConfiguration() => setState(() => _audioConfigurationDone = true);
 
   void _changePlayingStatus() async {
     if (widget.onPlay != null) widget.onPlay!();
@@ -374,7 +296,6 @@ class _VoiceMessageState extends State<VoiceMessage>
     super.dispose();
   }
 
-  ///
   _onChangeSlider(double d) async {
     if (_isPlaying) _changePlayingStatus();
     duration = d.round();
@@ -385,9 +306,7 @@ class _VoiceMessageState extends State<VoiceMessage>
   }
 }
 
-///
 class CustomTrackShape extends RoundedRectSliderTrackShape {
-  ///
   @override
   Rect getPreferredRect({
     required RenderBox parentBox,
@@ -397,8 +316,7 @@ class CustomTrackShape extends RoundedRectSliderTrackShape {
     bool isDiscrete = false,
   }) {
     const double trackHeight = 10;
-    final double trackLeft = offset.dx,
-        trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final double trackLeft = offset.dx, trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
     final double trackWidth = parentBox.size.width;
     return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
