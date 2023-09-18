@@ -12,10 +12,8 @@ import './noises.dart';
 class VoiceMessage extends StatefulWidget {
   VoiceMessage({
     Key? key,
-    this.audioSrc,
-    this.audioFile,
+    required this.source,
     this.duration,
-    this.formatDuration,
     this.showDuration = false,
     this.waveForm,
     this.noiseCount = 27,
@@ -26,8 +24,8 @@ class VoiceMessage extends StatefulWidget {
     this.onPlay,
   }) : super(key: key);
 
-  final String? audioSrc;
-  Future<File>? audioFile;
+  final Source source;
+
   final Duration? duration;
   final bool showDuration;
   final List<double>? waveForm;
@@ -37,7 +35,6 @@ class VoiceMessage extends StatefulWidget {
   final Color backgroundColor, foregroundColor;
   final bool played;
   Function()? onPlay;
-  String Function(Duration duration)? formatDuration;
 
   @override
   State<VoiceMessage> createState() => _VoiceMessageState();
@@ -47,21 +44,22 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
   late StreamSubscription stream;
   final AudioPlayer _player = AudioPlayer();
   final double maxNoiseHeight = 6.w(), noiseWidth = 28.5.w();
-  Duration? _audioDuration;
+  late Duration? _audioDuration;
   double maxDurationForSlider = .0000001;
   bool _isPlaying = false, x2 = false, _audioConfigurationDone = false;
   int duration = 00;
   String _remainingTime = '';
   AnimationController? _controller;
+  String Function(Duration duration) formatDuration = (Duration duration) => duration.toString().substring(
+        2,
+        7,
+      );
 
   @override
   void initState() {
-    widget.formatDuration ??= (Duration duration) {
-      return duration.toString().substring(2, 11);
-    };
-
-    _setDuration();
     super.initState();
+    _setDuration();
+
     stream = _player.onPlayerStateChanged.listen((event) {
       switch (event) {
         case PlayerState.stopped:
@@ -76,7 +74,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
           _player.seek(const Duration(milliseconds: 0));
           setState(() {
             duration = _audioDuration!.inMilliseconds;
-            _remainingTime = widget.formatDuration!(_audioDuration!);
+            _remainingTime = formatDuration(_audioDuration!);
           });
           break;
         default:
@@ -85,7 +83,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
     });
     _player.onPositionChanged.listen(
       (Duration p) => setState(
-        () => _remainingTime = p.toString().substring(2, 11),
+        () => _remainingTime = p.toString().substring(2, 7),
       ),
     );
   }
@@ -94,12 +92,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
   Widget build(BuildContext context) => _sizerChild(context);
 
   Widget _sizerChild(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(
-          48,
-          6,
-          16,
-          6,
-        ),
+        padding: const EdgeInsets.fromLTRB(48, 6, 16, 6),
         child: Material(
           type: MaterialType.transparency,
           child: Container(
@@ -163,27 +156,13 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
           _noise(context),
           Row(
             children: [
-              if (widget.showDuration)
-                Padding(
-                  padding: EdgeInsets.only(left: 1.2.w()),
-                  child: Text(
-                    widget.formatDuration!(widget.duration!),
-                    style: TextStyle(
-                      fontSize: 10,
+              Text(
+                _remainingTime,
+                style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
                       color: widget.foregroundColor,
                     ),
-                  ),
-                ),
-              SizedBox(width: 1.5.w()),
-              SizedBox(
-                width: 50,
-                child: Text(
-                  _remainingTime,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: widget.foregroundColor,
-                  ),
-                ),
               ),
             ],
           ),
@@ -191,51 +170,52 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
       );
 
   Widget _noise(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.hardEdge,
-      alignment: Alignment.center,
-      children: [
-        const Noises(),
-        if (_audioConfigurationDone)
-          AnimatedBuilder(
-            animation: CurvedAnimation(parent: _controller!, curve: Curves.ease),
-            builder: (context, child) {
-              return Positioned(
-                left: _controller!.value,
-                child: Container(
-                  width: noiseWidth,
-                  height: 6.w(),
-                  color: widget.backgroundColor.withOpacity(.4),
-                ),
-              );
-            },
-          ),
-        Opacity(
-          opacity: .0,
-          child: Container(
-            width: noiseWidth,
-            color: Colors.amber.withOpacity(0),
-            child: Slider(
-              min: 0.0,
-              max: maxDurationForSlider,
-              onChangeStart: (__) => _stopPlaying(),
-              onChanged: (_) => _onChangeSlider(_),
-              value: duration + .0,
+    return Theme(
+      data: ThemeData(
+          sliderTheme: SliderThemeData(
+        trackShape: CustomTrackShape(),
+        thumbShape: SliderComponentShape.noThumb,
+        minThumbSeparation: 0,
+      )),
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        alignment: Alignment.center,
+        children: [
+          const Noises(),
+          if (_audioConfigurationDone)
+            AnimatedBuilder(
+              animation: CurvedAnimation(parent: _controller!, curve: Curves.ease),
+              builder: (context, child) {
+                return Positioned.fill(
+                  left: _controller!.value,
+                  child: Container(
+                    height: 6.w(),
+                    color: widget.backgroundColor.withOpacity(.9),
+                  ),
+                );
+              },
+            ),
+          Opacity(
+            opacity: .0,
+            child: Container(
+              width: noiseWidth,
+              color: Colors.amber.withOpacity(0),
+              child: Slider(
+                min: 0.0,
+                max: maxDurationForSlider,
+                onChangeStart: (__) => _stopPlaying(),
+                onChanged: (_) => _onChangeSlider(_),
+                value: duration + .0,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   void _startPlaying() async {
-    if (widget.audioFile != null) {
-      String path = (await widget.audioFile!).path;
-      debugPrint("> _startPlaying path $path");
-      await _player.play(DeviceFileSource(path));
-    } else if (widget.audioSrc != null) {
-      await _player.play(UrlSource(widget.audioSrc!));
-    }
+    await _player.play(widget.source);
     _controller!.forward();
   }
 
@@ -248,7 +228,12 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
     if (widget.duration != null) {
       _audioDuration = widget.duration;
     } else {
-      _audioDuration = await _player.getDuration();
+      await _player.setSource(widget.source);
+      await _player.getDuration().then((value) {
+        setState(() {
+          _audioDuration = value;
+        });
+      });
     }
     duration = _audioDuration!.inMilliseconds;
     maxDurationForSlider = duration + .0;
@@ -275,7 +260,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
 
   void _setAnimationConfiguration(Duration audioDuration) async {
     setState(() {
-      _remainingTime = widget.formatDuration!(audioDuration);
+      _remainingTime = formatDuration(audioDuration);
     });
     debugPrint("_setAnimationConfiguration $_remainingTime");
     _completeAnimationConfiguration();
@@ -301,7 +286,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
     if (_isPlaying) _changePlayingStatus();
     duration = d.round();
     _controller?.value = (noiseWidth) * duration / maxDurationForSlider;
-    _remainingTime = widget.formatDuration!(_audioDuration!);
+    _remainingTime = formatDuration(_audioDuration!);
     await _player.seek(Duration(milliseconds: duration));
     setState(() {});
   }
