@@ -113,7 +113,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.fromLTRB(0, 0, 20, 0),
                     child: _durationWithNoise(context),
                   ),
                 ),
@@ -154,17 +154,16 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _noise(context),
-          Row(
-            children: [
-              Text(
-                _remainingTime,
-                style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
-                      color: widget.foregroundColor,
-                    ),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: Text(
+              _remainingTime,
+              style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                    color: widget.foregroundColor,
+                  ),
+            ),
           ),
         ],
       );
@@ -198,8 +197,6 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
           Opacity(
             opacity: .0,
             child: Container(
-              width: noiseWidth,
-              color: Colors.amber.withOpacity(0),
               child: Slider(
                 min: 0.0,
                 max: maxDurationForSlider,

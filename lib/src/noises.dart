@@ -5,7 +5,7 @@ import 'package:voice_message_package/src/helpers/utils.dart';
 
 /// document will be added
 class Noises extends StatelessWidget {
-  const Noises({Key? key}) : super(key: key);
+  const Noises({super.key});
 
   @override
   Widget build(BuildContext context) {
