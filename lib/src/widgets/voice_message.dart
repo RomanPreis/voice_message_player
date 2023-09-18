@@ -148,7 +148,6 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Stack(
-            clipBehavior: Clip.hardEdge,
             alignment: Alignment.center,
             children: [
               const Noises(),
@@ -168,7 +167,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
                   },
                 ),
               Opacity(
-                opacity: 0.0,
+                opacity: 0,
                 child: SliderTheme(
                   data: SliderThemeData(
                     trackShape: CustomTrackShape(),
@@ -176,7 +175,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
                     minThumbSeparation: 0,
                   ),
                   child: Slider(
-                    min: 0.0,
+                    min: 0,
                     max: maxDurationForSlider,
                     onChangeStart: (__) => _stopPlaying(),
                     onChanged: (_) => _onChangeSlider(_),
