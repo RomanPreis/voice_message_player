@@ -104,7 +104,9 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
                     child: _playButton(context),
                   ),
                   Expanded(
-                    child: _durationWithNoise(context),
+                    child: SizedBox(
+                      child: _durationWithNoise(context),
+                    ),
                   ),
                 ],
               ),
@@ -147,6 +149,7 @@ class _VoiceMessageState extends State<VoiceMessage> with SingleTickerProviderSt
   Widget _durationWithNoise(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          //TODO fix layout to match figma
           Stack(
             alignment: Alignment.center,
             children: [
